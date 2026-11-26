@@ -14,7 +14,7 @@ def request(method, path, payload=None, token=None, expected=200):
     if code != expected:
         if "/auth/" not in path: print(raw, flush=True)
         raise AssertionError(f"Expected {expected}, got {code}")
-    if raw and "/auth/" not in path: print(raw, flush=True)
+    if raw and "/auth/" not in path and "/swagger/" not in path: print(raw, flush=True)
     return json.loads(raw) if raw and code < 300 else None
 spec = request("GET", "/swagger/v1/swagger.json")
 auth = "/auth/login" in spec["paths"]
