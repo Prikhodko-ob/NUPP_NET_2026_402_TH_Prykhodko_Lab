@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using ConstructionCompany.Infrastructure.Models;
 namespace ConstructionCompany.Infrastructure;
-public class ConstructionCompanyContext(DbContextOptions<ConstructionCompanyContext> options) : DbContext(options) {
+public class ConstructionCompanyContext(DbContextOptions<ConstructionCompanyContext> options) : IdentityDbContext<ApplicationUser>(options) {
  public DbSet<EmployeeModel> Employees => Set<EmployeeModel>();
  public DbSet<BuilderModel> Builders => Set<BuilderModel>();
  public DbSet<EngineerModel> Engineers => Set<EngineerModel>();
@@ -10,6 +11,7 @@ public class ConstructionCompanyContext(DbContextOptions<ConstructionCompanyCont
  public DbSet<EmployeeProfileModel> Profiles => Set<EmployeeProfileModel>();
  public DbSet<ProjectTaskModel> Tasks => Set<ProjectTaskModel>();
  protected override void OnModelCreating(ModelBuilder b) {
+  base.OnModelCreating(b);
   b.Entity<EmployeeModel>().UseTptMappingStrategy().ToTable("Employees");
   b.Entity<EmployeeModel>().HasKey(x=>x.Key); b.Entity<EmployeeModel>().HasIndex(x=>x.Id).IsUnique();
   b.Entity<BuilderModel>().ToTable("Builders"); b.Entity<EngineerModel>().ToTable("Engineers");
