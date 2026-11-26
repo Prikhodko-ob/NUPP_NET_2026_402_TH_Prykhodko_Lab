@@ -6,7 +6,7 @@ on:
     branches: [master, lab3, lab4]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -46,12 +46,47 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export BootstrapAdmin__Email="ci-admin@example.test"
+          export BootstrapAdmin__Password="$(python3 -c 'import secrets; print("Aa1!"+secrets.token_hex(24))')"
           export ConnectionStrings__Construction="Data Source=$GITHUB_WORKSPACE/verification/rest.db"
           dotnet run --no-build --project ConstructionCompany.REST -- --urls http://127.0.0.1:5080 > verification/server.txt 2>&1 &
           server=$!
           trap 'kill "$server" || true' EXIT
           for i in {1..60}; do if curl -fsS http://127.0.0.1:5080/swagger/v1/swagger.json > verification/swagger.json; then break; fi; sleep 1; done
           python3 scripts/verify_rest.py | tee verification/http.txt
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          python3 -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(); page=b.new_page(viewport={"width":1200,"height":900}); page.goto("http://127.0.0.1:5080/swagger/index.html"); page.wait_for_selector(".opblock"); page.screenshot(path="verification/swagger.png",full_page=True); b.close(); p.stop()'
+      - name: Prepare report tools
+        if: success()
+        run: |
+          python3 -m pip install reportlab playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Create report from actual evidence
+        if: success()
+        env:
+          LAB_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: python3 scripts/create_verified_report.py
+      - name: Publish verified report to branch
+        if: success() && github.event_name == 'push'
+        env:
+          LAB_BRANCH: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          number="${LAB_BRANCH#lab}"
+          cp "verification/Lab${number}_Report.pdf" "Lab${number}_Report.pdf"
+          git add "Lab${number}_Report.pdf"
+          if [ "$LAB_BRANCH" = lab3 ]; then
+            cp verification/construction-ef.db construction-ef.db
+            git add -f construction-ef.db
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git commit -m "Add verified Lab ${number} report from GitHub Actions"
+            git push origin "HEAD:$LAB_BRANCH"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
