@@ -1,0 +1,15 @@
+@model IEnumerable<ConstructionCompany.Infrastructure.Models.ConstructionProjectModel>
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><title>Будівельні проєкти</title></head>
+<body><h1>Будівельні проєкти</h1>
+<form method="post" action="/Projects/Create">
+@Html.AntiForgeryToken()
+<label>Назва <input name="title" required /></label>
+<label>Бюджет <input name="budget" type="number" min="0" step="0.01" required /></label>
+<label>Адреса <input name="address" required /></label><button>Додати</button>
+</form>
+<table><thead><tr><th>Назва</th><th>Бюджет</th><th>Адреса</th><th>Дії</th></tr></thead><tbody>
+@foreach(var p in Model){
+<tr><td>@p.Title</td><td>@p.Budget</td><td>@p.Address</td><td><form method="post" action="/Projects/Delete/@p.Key">@Html.AntiForgeryToken()<button>Видалити</button></form></td></tr>
+}
+</tbody></table></body></html>

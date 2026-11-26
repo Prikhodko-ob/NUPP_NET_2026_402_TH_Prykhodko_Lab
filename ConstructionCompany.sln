@@ -10,12 +10,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructionCompany.Infrast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructionCompany.Nosql", "ConstructionCompany.Nosql\ConstructionCompany.Nosql.csproj", "{43B027F4-B650-42F0-9009-ABDF6A5F741D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructionCompany.REST", "ConstructionCompany.REST\ConstructionCompany.REST.csproj", "{8C76B214-4A7F-4FA5-9ADC-1028B6B96E01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructionCompany.MVC", "ConstructionCompany.MVC\ConstructionCompany.MVC.csproj", "{8C76B214-4A7F-4FA5-9ADC-1028B6B96E02}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C76B214-4A7F-4FA5-9ADC-1028B6B96E01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{43B027F4-B650-42F0-9009-ABDF6A5F741D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43B027F4-B650-42F0-9009-ABDF6A5F741D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43B027F4-B650-42F0-9009-ABDF6A5F741D}.Release|Any CPU.ActiveCfg = Release|Any CPU
