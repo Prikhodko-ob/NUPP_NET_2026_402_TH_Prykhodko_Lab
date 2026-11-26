@@ -1,0 +1,8 @@
+Actual SQLite checks (Python sqlite3, not EF Core):
+PRAGMA integrity_check: ok
+PRAGMA foreign_key_check: no violations
+INSERT: OK
+SELECT: OK
+UPDATE: OK
+DELETE: OK
+CRUD tested in an in-memory copy of construction.db.

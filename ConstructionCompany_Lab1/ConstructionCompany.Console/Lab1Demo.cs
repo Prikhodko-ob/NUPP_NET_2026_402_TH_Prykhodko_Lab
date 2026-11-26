@@ -1,0 +1,36 @@
+using ConstructionCompany.Common;
+using System.Globalization;
+internal static class Lab1Demo
+{
+    public static void Run()
+    {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        var service = new CrudService<Employee>();
+        service.Changed += (operation, employee) => Console.WriteLine($"{operation}: {employee.Name}");
+        Console.WriteLine(Employee.CompanyName);
+        var builder = new Builder("Oleksii", 250, "Bricklayer", 3, "SC-001");
+        var engineer = new Engineer("Iryna", 400, "Civil engineer", "Design", 5);
+        service.Create(builder);
+        service.Create(engineer);
+        Console.WriteLine("READ: " + service.Read(builder.Id).Describe());
+        Console.WriteLine("READ ALL:");
+        foreach (var employee in service.ReadAll()) Console.WriteLine(employee.Describe());
+        if (Employee.IsValidRate(300)) builder.HourlyRate = 300;
+        service.Update(builder);
+        Console.WriteLine(builder.PaySummary(8));
+        service.Remove(engineer);
+        Console.WriteLine($"Remaining: {service.ReadAll().Count()}");
+        service.Save("employees.json");
+        Console.WriteLine("Saved employees.json");
+        var restored = new CrudService<Employee>();
+        restored.Load("employees.json");
+        Console.WriteLine($"Loaded: {restored.ReadAll().Count()}");
+        foreach (var employee in restored.ReadAll()) Console.WriteLine(employee.Describe());
+        var projects = new CrudService<ConstructionProject>();
+        var project = new ConstructionProject { Title = "Residential house", Budget = 1500000, Address = "Kharkiv" };
+        projects.Create(project);
+        project.Complete();
+        projects.Update(project);
+        Console.WriteLine($"Project: {project.Title}, completed: {project.IsCompleted}");
+    }
+}

@@ -1,0 +1,75 @@
+name: .NET verification
+on:
+  push:
+    branches: [lab1, lab2, lab3, lab4, lab5]
+  pull_request:
+    branches: [master, lab3, lab4]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f ConstructionCompany.sln ]; then cd ConstructionCompany_Lab1; fi
+          dotnet restore ConstructionCompany.sln
+          dotnet build ConstructionCompany.sln --no-restore
+          dotnet test ConstructionCompany.sln --no-build
+      - name: Verify console and database
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/verification"
+          if [ ! -f ConstructionCompany.sln ]; then cd ConstructionCompany_Lab1; fi
+          if [ -d ConstructionCompany.Infrastructure ]; then
+            dotnet run --no-build --project ConstructionCompany.Console -- "$GITHUB_WORKSPACE/verification/construction-ef.db" | tee "$GITHUB_WORKSPACE/verification/console.txt"
+            python3 -c 'import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print("Integrity:",c.execute("pragma integrity_check").fetchall()); print("FK:",c.execute("pragma foreign_key_check").fetchall()); [print(t, c.execute("select * from "+chr(34)+t+chr(34)).fetchall()) for (t,) in c.execute("select name from sqlite_master where type="+chr(39)+"table"+chr(39))]' "$GITHUB_WORKSPACE/verification/construction-ef.db" > "$GITHUB_WORKSPACE/verification/sqlite.txt"
+            dotnet run --no-build --project ConstructionCompany.Console -- --mongo mongodb://localhost:27017 | tee "$GITHUB_WORKSPACE/verification/mongo.txt"
+          else
+            dotnet run --no-build --project ConstructionCompany.Console | tee "$GITHUB_WORKSPACE/verification/console.txt"
+          fi
+      - name: Verify REST endpoints
+        if: ${{ hashFiles('ConstructionCompany.REST/ConstructionCompany.REST.csproj') != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export BootstrapAdmin__Email="ci-admin@example.test"
+          export BootstrapAdmin__Password="$(python3 -c 'import secrets; print("Aa1!"+secrets.token_hex(24))')"
+          export ConnectionStrings__Construction="Data Source=$GITHUB_WORKSPACE/verification/rest.db"
+          dotnet run --no-build --project ConstructionCompany.REST -- --urls http://127.0.0.1:5080 > verification/server.txt 2>&1 &
+          server=$!
+          trap 'kill "$server" || true' EXIT
+          for i in {1..60}; do if curl -fsS http://127.0.0.1:5080/swagger/v1/swagger.json > verification/swagger.json; then break; fi; sleep 1; done
+          python3 scripts/verify_rest.py | tee verification/http.txt
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+          python3 -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(); page=b.new_page(viewport={"width":1200,"height":900}); page.goto("http://127.0.0.1:5080/swagger/index.html"); page.wait_for_selector(".opblock"); page.screenshot(path="verification/swagger.png",full_page=True); b.close(); p.stop()'
+      - name: Prepare report tools
+        if: success()
+        run: |
+          python3 -m pip install reportlab playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Create report from actual evidence
+        if: success()
+        env:
+          LAB_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: python3 scripts/create_verified_report.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-results
+          path: verification/
+          if-no-files-found: warn

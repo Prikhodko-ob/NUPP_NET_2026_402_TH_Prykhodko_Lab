@@ -21,6 +21,7 @@ public abstract class Employee : IEntity
     // Статичний метод
     public static bool IsValidRate(decimal rate) => rate > 0;
     public abstract string Describe();
+    public static Employee CreateNew() => Random.Shared.Next(2) == 0 ? Builder.CreateNew() : Engineer.CreateNew();
 }
 public class Builder : Employee
 {
@@ -31,6 +32,7 @@ public class Builder : Employee
     public Builder() { }
     public Builder(string name, decimal rate, string specialty, int years, string certificate)
         : base(name, rate) { Specialty = specialty; ExperienceYears = years; SafetyCertificate = certificate; }
+    public new static Builder CreateNew() => new($"Builder-{Guid.NewGuid():N}", Random.Shared.Next(200, 601), "Bricklayer", Random.Shared.Next(1, 31), "SC-" + Guid.NewGuid().ToString("N"));
     public override string Describe() => $"Builder: {Name}, {Specialty}, {ExperienceYears} years";
 }
 public class Engineer : Employee
@@ -42,6 +44,7 @@ public class Engineer : Employee
     public Engineer() { }
     public Engineer(string name, decimal rate, string qualification, string department, int projects)
         : base(name, rate) { Qualification = qualification; Department = department; CompletedProjects = projects; }
+    public new static Engineer CreateNew() => new($"Engineer-{Guid.NewGuid():N}", Random.Shared.Next(350, 901), "Civil engineer", "Design", Random.Shared.Next(0, 51));
     public override string Describe() => $"Engineer: {Name}, {Qualification}, {Department}";
 }
 public class ConstructionProject : IEntity
@@ -52,6 +55,7 @@ public class ConstructionProject : IEntity
     public string Address { get; set; } = "";
     public bool IsCompleted { get; set; }
     // Метод
+    public static ConstructionProject CreateNew() => new() { Title = $"Project-{Guid.NewGuid():N}", Budget = Random.Shared.Next(100000, 5000001), Address = "Kharkiv" };
     public void Complete() => IsCompleted = true;
 }
 public static class EmployeeExtensions
