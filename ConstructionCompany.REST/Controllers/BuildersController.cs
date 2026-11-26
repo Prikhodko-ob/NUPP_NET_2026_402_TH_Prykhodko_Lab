@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using ConstructionCompany.Common;
 using ConstructionCompany.Infrastructure.Models;
 using ConstructionCompany.REST.Models;
@@ -17,13 +18,13 @@ public class BuildersController(ICrudServiceAsync<BuilderModel> service) : Contr
     public async Task<IActionResult> Get(Guid id) {
         try { return Ok(Map(await service.ReadAsync(id))); } catch(KeyNotFoundException) { return NotFound(); }
     }
-    [HttpPost]
+    [Authorize(Roles="Manager,Admin"), HttpPost]
     public async Task<IActionResult> Create(BuilderInput input) {
         var x=Entity(input,Guid.NewGuid()); if(!await service.CreateAsync(x)) return Conflict();
         return CreatedAtAction(nameof(Get),new {id=x.Id},Map(x));
     }
-    [HttpPut("{id:guid}")]
+    [Authorize(Roles="Manager,Admin"), HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id,BuilderInput input) => await service.UpdateAsync(Entity(input,id)) ? NoContent() : NotFound();
-    [HttpDelete("{id:guid}")]
+    [Authorize(Roles="Admin"), HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id) => await service.RemoveAsync(new BuilderModel{Id=id}) ? NoContent() : NotFound();
 }
