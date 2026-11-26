@@ -6,7 +6,7 @@ on:
     branches: [master, lab3, lab4]
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -67,26 +67,6 @@ jobs:
         env:
           LAB_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: python3 scripts/create_verified_report.py
-      - name: Publish verified report to branch
-        if: success() && github.event_name == 'push'
-        env:
-          LAB_BRANCH: ${{ github.ref_name }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          number="${LAB_BRANCH#lab}"
-          cp "verification/Lab${number}_Report.pdf" "Lab${number}_Report.pdf"
-          git add "Lab${number}_Report.pdf"
-          if [ "$LAB_BRANCH" = lab3 ]; then
-            cp verification/construction-ef.db construction-ef.db
-            git add -f construction-ef.db
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --cached --quiet; then
-            git commit -m "Add verified Lab ${number} report from GitHub Actions"
-            git push origin "HEAD:$LAB_BRANCH"
-          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
